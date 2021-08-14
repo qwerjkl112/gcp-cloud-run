@@ -36,8 +36,7 @@ public class UserDistanceDao {
         try {
             create();
         } catch (Exception e) {
-            System.out.println("Skipping initializing Database as it already exists\n" + e);
-
+            System.out.println("Skipping initializing Database as it already exists\n");
         }
     }
 
@@ -164,20 +163,21 @@ public class UserDistanceDao {
         return newUser;
     }
 
-    public Boolean insertDistance(Long userId, Float distance) throws Exception {
+    public Boolean insertDistance(String username, Float distance) throws Exception {
         // check userId exist
-        if (!validateUserId(userId)) {
-            throw new Exception("User does not exist");
+        if (!validateUsername(username)) {
+            insertUser(username);
         }
+        User user = retrieveUser(username);
 
         dbClient
             .readWriteTransaction()
             .run(transaction -> {
                 String s = "INSERT INTO Distances (UserId, Distance, Timestamp)" 
-                + String.format(" VALUES (%s, %s, CURRENT_TIMESTAMP())", userId, distance);
+                + String.format(" VALUES (%s, %s, CURRENT_TIMESTAMP())", user.getUserId(), distance);
                 long rowCount = transaction.executeUpdate(Statement.of(s));
                 if (rowCount == 0) {
-                    System.out.println("Failed to insert new distance" + userId);
+                    System.out.println("Failed to insert new distance" + username);
                     throw new Exception("Failed to insert new distance");
                 }
                 System.out.println("Successfully updated " + rowCount + " row(s)");
